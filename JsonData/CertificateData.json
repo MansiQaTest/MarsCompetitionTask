@@ -1,0 +1,120 @@
+[
+  {
+    "TestCase": "AddCertificateData",
+    "Data": [
+      {
+        "certificationName": "TestAnalyst",
+        "certificationFrom": "Industry Connect",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "AddCertificateDatawithempty",
+    "Data": [
+      {
+        "certificationName": "",
+        "certificationFrom": "",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "AddCertificateWithDuplicateEntry",
+    "Data": [
+      {
+        "certificationName": "TestAnalyst",
+        "certificationFrom": "Industry Connect",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "CreateMultipleData",
+    "Data": [
+      {
+        "certificationName": "TestAnalyst",
+        "certificationFrom": "Industry Connect",
+        "certificationYear": "2024"
+      },
+      {
+        "certificationName": "Manual Tester",
+        "certificationFrom": "CodeEpsilon",
+        "certificationYear": "2020"
+      },
+      {
+        "certificationName": "ISTQB",
+        "certificationFrom": "ISTQB",
+        "certificationYear": "2024"
+      },
+      {
+        "certificationName": "FireBase Analytics",
+        "certificationFrom": "Google",
+        "certificationYear": "2023"
+      }
+    ]
+  },
+  {
+    "TestCase": "CreateCertificateDatawithInvalidinput",
+    "Data": [
+      {
+        "certificationName": "###",
+        "certificationFrom": "Industry Connect",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "EditCertificateData",
+    "Data": [
+
+      {
+        "certificationName": "Manual Tester",
+        "certificationFrom": "CodeEpsilon",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "EditCertificateDatawithempty",
+    "Data": [
+
+      {
+        "certificationName": "",
+        "certificationFrom": "CodeEpsilon",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "EditCertificateDatawithinvalid",
+    "Data": [
+      {
+        "certificationName": "&&&&",
+        "certificationFrom": "^^^",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "DeleteDataWhichisinthelist",
+    "Data": [
+      {
+        "certificationName": "TestAnalyst",
+        "certificationFrom": "Industry Connect",
+        "certificationYear": "2024"
+      }
+    ]
+  },
+  {
+    "TestCase": "DeleteDataWhichisnotinthelist",
+    "Data": [
+      {
+        "certificationName": "Manual",
+        "certificationFrom": "Google",
+        "certificationYear": "2024"
+      }
+    ]
+  }
+
+]
