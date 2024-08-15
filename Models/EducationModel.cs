@@ -6,12 +6,6 @@ using System.Threading.Tasks;
 
 namespace CompetitionTask.Models
 {
-    public class TestCaseData2
-    {
-        public string TestCase { get; set; }
-        public List<EducationModel> Data { get; set; }
-    }
-
     public class EducationModel
     {
         public string Country { get; set; }

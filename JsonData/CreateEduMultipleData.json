@@ -1,0 +1,44 @@
+[
+  {
+    "Country": "India",
+    "University": "GTU",
+    "Title": "B.Tech",
+    "Degree": "EC",
+    "GraduationYear": "2016"
+  },
+  {
+    "Country": "India",
+    "University": "MIT",
+    "Title": "B.Tech",
+    "Degree": "CS",
+    "GraduationYear": "2018"
+  },
+  {
+    "Country": "India",
+    "University": "Oxford",
+    "Title": "B.Tech",
+    "Degree": "Physics",
+    "GraduationYear": "2022"
+  },
+  {
+    "Country": "India",
+    "University": "TU Munich",
+    "Title": "B.Tech",
+    "Degree": "Mechanical Engineering",
+    "GraduationYear": "2017"
+  },
+  {
+    "Country": "India",
+    "University": "University of Melbourne",
+    "Title": "B.Tech",
+    "Degree": "Biology",
+    "GraduationYear": "2019"
+  },
+  {
+    "Country": "Canada",
+    "University": "University of Toronto",
+    "Title": "B.Tech",
+    "Degree": "History",
+    "GraduationYear": "2020"
+  }
+]

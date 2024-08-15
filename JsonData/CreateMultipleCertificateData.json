@@ -1,0 +1,22 @@
+[
+  {
+    "certificationName": "TestAnalyst",
+    "certificationFrom": "Industry Connect",
+    "certificationYear": "2024"
+  },
+  {
+    "certificationName": "Manual Tester",
+    "certificationFrom": "CodeEpsilon",
+    "certificationYear": "2020"
+  },
+  {
+    "certificationName": "ISTQB",
+    "certificationFrom": "ISTQB",
+    "certificationYear": "2024"
+  },
+  {
+    "certificationName": "FireBase Analytics",
+    "certificationFrom": "Google",
+    "certificationYear": "2023"
+  }
+]

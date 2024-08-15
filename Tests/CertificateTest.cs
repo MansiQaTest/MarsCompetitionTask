@@ -4,68 +4,61 @@ using CompetitionTask.Pages;
 using CompetitionTask.Utils;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CompetitionTask.Tests
 {
+    [TestFixture]
     public class CertificateTest : CommonDriver
     {
         Certificate CertificateObj;
         LoginPage loginPageObj;
-        string addCertFile = @"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CertificateData.json";
-        List<string> CertificatenamesToDelete; // Initialize this list
-        List<string> CertificateToRemove; //
+        List<string> CertificatenamesToDelete;
+        List<string> jsonDataFile;
 
         public CertificateTest()
         {
             loginPageObj = new LoginPage();
             CertificateObj = new Certificate();
-            CertificatenamesToDelete = new List<string>(); // Initialize the list
-            CertificateToRemove = new List<string>(); //
+            CertificatenamesToDelete = new List<string>();
         }
 
-        private void RunCertificateTest(string testCaseName)
+        private void RunCertificateTest(string jsonDataFile)
         {
+            
             CertificateObj.ClickAnyTab("Certifications");
             test.Log(Status.Info, "Navigated to Certificate tab");
-            test = extent.CreateTest(testCaseName).Info("Test Started");
+
             try
             {
+                List<CertificationModel> CertificateData = JsonUtils.ReadJsonData<CertificationModel>(jsonDataFile);
 
-                List<Models.TestCaseData4> testCases = JsonUtils.ReadJsonData<Models.TestCaseData4>(addCertFile);
-                var CertificateTestCase = testCases.FirstOrDefault(tc => tc.TestCase == testCaseName);
-
-                if (CertificateTestCase != null)
+                foreach (var item in CertificateData)
                 {
-                    foreach (var item in CertificateTestCase.Data)
+
+                    string certificatename = item.CertificationName;
+                    string certificatefrom = item.CertificationFrom;
+                    string certificationYear = item.CertificationYear;
+
+                    try
                     {
-
-                        string certificatename = item.CertificationName;
-                        string certificatefrom = item.CertificationFrom;
-                        string certificationYear = item.CertificationYear;
-
-                        try
-                        {
-                            CertificateObj.Createcertificate(certificatename, certificatefrom, certificationYear);
-                            // Add the certificatename to the list for cleanup if added successfully
-                           CertificatenamesToDelete.Add(certificatename);
-                        }
-                        catch (Exception ex)
-                        {
-                            test.Log(Status.Fail, $"Failed to add Certificate with certificatename {certificatename}: {ex.Message}");
-                            throw; // Ensure the test fails if the Certificate could not be added
-                        }
-
+                        CertificateObj.Createcertificate(certificatename, certificatefrom, certificationYear);
+                        // Add the certificatename to the list for cleanup if added successfully
+                        CertificatenamesToDelete.Add(certificatename);
                     }
-                }
-                else
-                {
-                    throw new Exception($"Test case {testCaseName} not found in JSON data.");
+                    catch (Exception ex)
+                    {
+                        test.Log(Status.Fail, $"Failed to add Certificate with certificatename {certificatename}: {ex.Message}");
+                        throw; // Ensure the test fails if the Certificate could not be added
+                    }
+
                 }
             }
             catch (Exception e)
@@ -74,19 +67,16 @@ namespace CompetitionTask.Tests
                 throw;
             }
         }
-        private void RunEditCertificateTest(string testCaseName)
+        private void RunEditCertificateTest(string jsonDataFile)
         {
             CertificateObj.ClickAnyTab("Certifications");
             test.Log(Status.Info, "Navigated to Certificate tab");
-            test = extent.CreateTest(testCaseName).Info("Test Started");
             try
             {
-                List<Models.TestCaseData4> testCases = JsonUtils.ReadJsonData<Models.TestCaseData4>(addCertFile);
-                var CertificateTestCase = testCases.FirstOrDefault(tc => tc.TestCase == testCaseName);
+                List<CertificationModel> CertificateData = JsonUtils.ReadJsonData<CertificationModel>(jsonDataFile);
 
-                if (CertificateTestCase != null)
+                foreach (var item in CertificateData)
                 {
-                    foreach (var item in CertificateTestCase.Data)
                     {
                         string certificatename = item.CertificationName;
                         string certificatefrom = item.CertificationFrom;
@@ -104,10 +94,6 @@ namespace CompetitionTask.Tests
                         }
                     }
                 }
-                else
-                {
-                    throw new Exception($"Test case {testCaseName} not found in JSON data.");
-                }
             }
             catch (Exception e)
             {
@@ -115,22 +101,19 @@ namespace CompetitionTask.Tests
                 throw;
             }
         }
-        private void RunDeleteCertificateTest(string testCaseName)
+        private void RunDeleteCertificateTest(string jsonDataFile)
         {
+           
             CertificateObj.ClickAnyTab("Certifications");
             test.Log(Status.Info, "Navigated to Certificate tab");
 
-            test = extent.CreateTest(testCaseName).Info("Test Started");
             try
             {
-                List<Models.TestCaseData4> testCases = JsonUtils.ReadJsonData<Models.TestCaseData4>(addCertFile);
-                var CertificateTestCase = testCases.FirstOrDefault(tc => tc.TestCase == testCaseName);
+                List<CertificationModel> CertificateData = JsonUtils.ReadJsonData<CertificationModel>(jsonDataFile);
 
-                if (CertificateTestCase != null)
-                {
-                    foreach (var item in CertificateTestCase.Data)
-                    {
-                        string certificatename = item.CertificationName;
+                foreach (var item in CertificateData) 
+                { 
+                    string certificatename = item.CertificationName;
 
                         try
                         {
@@ -142,11 +125,7 @@ namespace CompetitionTask.Tests
                             test.Log(Status.Fail, $"Failed to delete Certificate to degree {certificatename}: {ex.Message}");
                             throw; // Ensure the test fails if the Certificate could not be delete
                         }
-                    }
-                }
-                else
-                {
-                    throw new Exception($"Test case {testCaseName} not found in JSON data.");
+                    
                 }
             }
             catch (Exception e)
@@ -155,11 +134,21 @@ namespace CompetitionTask.Tests
                 throw;
             }
         }
+        [Test, Order(1), Description("Clear all the data")]
+        public void ClearData()
+        {
+            
+            CertificateObj.CleancertificateData();
 
-        [Test, Order(1), Description("user can able to Add new Certificate to the profile")]
+            var rows = driver.FindElements(By.CssSelector("div[data-tab='third'] .ui.fixed.table tbody tr"));
+            Assert.That(rows.Count == 0, "All records have been successfully deleted.");
+        }
+
+        [Test, Order(2), Description("user can able to Add new Certificate to the profile")]
         public void AddCertificate()
         {
-            RunCertificateTest("AddCertificateData");
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
+            
             string certificatename = CertificatenamesToDelete.First();
             try
             {
@@ -185,17 +174,19 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                CertificateObj.DeleteTestData(certificatename);
+                CommonDriver.CertificatenamesToDelete.Add(certificatename);
+
             }
         }
 
-        [Test, Order(2), Description("user cannot create a Certificate with an empty name")]
+        [Test, Order(3), Description("user cannot create a Certificate with an empty name")]
         public void AddCertificateWithempty()
         {
             try
             {
-                RunCertificateTest("AddCertificateDatawithempty");
+               
+                RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificateDatawithempty.json");
+             
                 string actualErrorMessage = CertificateObj.GetErrorMessage();
                 Assert.That(actualErrorMessage, Is.EqualTo("Please enter Certification Name, Certification From and Certification Year"), "The expected error message did not appear.");
                 test.Log(Status.Pass, "Test passed successfully");
@@ -213,15 +204,18 @@ namespace CompetitionTask.Tests
             }
         }
 
-        [Test, Order(3), Description("user cannot create duplicate entries for Certificate data based on existing records")]
+        [Test, Order(4), Description("user cannot create duplicate entries for Certificate data based on existing records")]
         public void AddCertificateWithDuplicateEntry()
         {
-            RunCertificateTest("AddCertificateData");
+
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
             string certificatename = CertificatenamesToDelete.First();
             Thread.Sleep(10000);
             try
             {
-                RunCertificateTest("AddCertificateWithDuplicateEntry");
+
+                RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificateWithDuplicateEntry.json");
+
                 string actualErrorMessage = CertificateObj.GetErrorMessage();
                 Assert.That(actualErrorMessage, Is.EqualTo("This information is already exist."), "The expected error message did not appear.");
                 if (string.IsNullOrEmpty(actualErrorMessage))
@@ -242,34 +236,21 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                CertificateObj.DeleteTestData(certificatename);
+                CommonDriver.CertificatenamesToDelete.Add(certificatename); 
             }
 
         }
 
 
-        [Test, Order(4), Description("User can create multiple Certificate records")]
+        [Test, Order(5), Description("User can create multiple Certificate records")]
         public void CreateMultipleData()
         {
-            // Run the Certificate test to add multiple records
-            RunCertificateTest("CreateMultipleData");
+          
 
-            // Extract the expected degrees from the JSON file
-            List<string> expectedCerificateName = new List<string>();
-            List<Models.TestCaseData4> testCases = JsonUtils.ReadJsonData<Models.TestCaseData4>(addCertFile);
-            var CertificateTestCase = testCases.FirstOrDefault(tc => tc.TestCase == "CreateMultipleData");
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CreateMultipleCertificateData.json");
 
-            if (CertificateTestCase != null)
-            {
-                expectedCerificateName = CertificateTestCase.Data.Select(item => item.CertificationName).ToList();
-            }
-            else
-            {
-                test.Log(Status.Fail, "Test case 'CreateMultipleData' not found in JSON data.");
-                Assert.Fail("Test case 'CreateMultipleData' not found in JSON data.");
-            }
-
+            List<CertificationModel> certificates = JsonConvert.DeserializeObject<List<CertificationModel>>(File.ReadAllText(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CreateMultipleCertificateData.json"));
+            List<string> expectedCerificateName = certificates.Select(c => c.CertificationName).ToList();
             // Wait for the degrees to be visible
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
             var actualCertificateName = new List<string>();
@@ -316,29 +297,27 @@ namespace CompetitionTask.Tests
             TakeScreenshotWithPngFormat();
 
 
-            // Perform cleanup after successful verification
+            
             foreach (var certificatename in expectedCerificateName)
             {
                 try
                 {
-                    CertificateObj.DeleteTestData(certificatename);
-                    test.Log(Status.Info, $"Deleted certificatename '{certificatename}' from the UI.");
+                    CommonDriver.CertificatenamesToDelete.Add(certificatename);
                 }
                 catch (Exception ex)
                 {
-                    test.Log(Status.Fail, $"Failed to delete certificatename '{certificatename}': {ex.Message}");
-                    // Continue with other deletions even if one fails
+                    throw;
                 }
             }
         }
 
 
-        [Test, Order(5), Description("User can create multiple Certificate records with invalid input")]
+        [Test, Order(6), Description("User can create Certificate records with invalid input")]
         public void CreateCertificateDatawithInvalidinput()
         {
             // Run the test to create certificate data with invalid input
-            RunCertificateTest("CreateCertificateDatawithInvalidinput");
-            string certificatename = CertificatenamesToDelete.First();
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CreateCertificateDatawithInvalidinput.json");
+            string certificatename = CertificateObj.GetCertificate();
 
             try
             {
@@ -375,42 +354,37 @@ namespace CompetitionTask.Tests
 
                 test.Log(Status.Pass, "Test passed successfully, error message is displayed.");
                 TakeScreenshotWithPngFormat();
+
+               
             }
             catch (Exception ex)
             {
                 test.Log(Status.Fail, $"An unexpected error occurred: {ex.Message}");
                 throw;
             }
-            finally
+           finally
             {
-                // Clean up test data
-                CertificateObj.DeleteTestData(certificatename);
-            }
-        }
-
-        [Test, Order(6), Description("Clear all the data")]
-        public void ClearData()
-        {
-           // RunCertificateTest("CreateMultipleData");
-            CertificateObj.CleancertificateData();
-
-            var rows = driver.FindElements(By.CssSelector("div[data-tab='third'] .ui.fixed.table tbody tr"));
-            Assert.That(rows.Count == 0, "All records have been successfully deleted.");
+                CommonDriver.CertificatenamesToDelete.Add(certificatename);
+           }
         }
 
         [Test, Order(7), Description("User can edit existing Certificate data")]
         public void EditCertificateData()
         {
-            // First, add the Certificate data
-            RunCertificateTest("AddCertificateData");
-            string certificatename = CertificatenamesToDelete.First();
+            // Run the test to add a certificate
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
+
+            // Get the first certificate name that was added
+            string certificatename = CertificatenamesToDelete.FirstOrDefault();
             string certificatename2 = string.Empty;
 
             try
             {
-                // Attempt to edit the certificate data
-                RunEditCertificateTest("EditCertificateData");
-                certificatename2 = CertificatenamesToDelete.Last();
+                // Run the test to edit the certificate
+                RunEditCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EditCertificateData.json");
+
+                // Get the last certificate name after editing
+                certificatename2 = CertificatenamesToDelete.LastOrDefault();
 
                 // Wait for the messages to appear
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
@@ -466,48 +440,106 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                if (!string.IsNullOrEmpty(certificatename2))
+                
+                try
                 {
-                    CertificateObj.DeleteTestData(certificatename2);
+                    if (!string.IsNullOrEmpty(certificatename2))
+                    {
+                       
+                        CommonDriver.CertificatenamesToDelete.Add(certificatename2);
+
+                    }
+                    if (!string.IsNullOrEmpty(certificatename))
+                    {
+                        CommonDriver.CertificatenamesToDelete.Add(certificatename);
+                        
+                    }
                 }
-                CertificateObj.DeleteTestData(certificatename);
+                catch (Exception ex)
+                {
+                    test.Log(Status.Fail, $"Failed to add certificate name for cleanup: {ex.Message}");
+                }
             }
         }
+
 
         [Test, Order(8), Description("User can edit existing Certificate data with empty")]
         public void EditCertificateDatawithempty()
         {
             // First, add the Certificate data
-            RunCertificateTest("AddCertificateData");
-            string certificatename = CertificatenamesToDelete.First();
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
+
+            string certificatename = CertificatenamesToDelete.FirstOrDefault();
             string certificatename2 = null;
+
             try
             {
-                RunCertificateTest("EditCertificateDatawithempty");
-                certificatename2 = CertificatenamesToDelete.Last();
-                string actualErrorMessage = CertificateObj.GetErrorMessage();
-                Assert.That(actualErrorMessage, Is.EqualTo("Please enter Certification Name, Certification From and Certification Year"), "The expected error message did not appear.");
-                test.Log(Status.Pass, "Test passed successfully");
-                TakeScreenshotWithPngFormat();
-            }
-            catch (WebDriverTimeoutException ex)
-            {
-                test.Log(Status.Fail, $"Timed out waiting for the error message: {ex.Message}");
-                throw;
+                // Run the edit test with empty data
+                RunEditCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EditCertificateDatawithempty.json");
+
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                try
+                {
+                    // Check if a success message is displayed
+                    var successElement = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//div[@class='ns-box ns-growl ns-effect-jelly ns-type-success ns-show']")));
+                    if (successElement != null)
+                    {
+                        Assert.Fail("Success message displayed instead of error message.");
+                    }
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    // Expected outcome if success message is not displayed
+                }
+
+                try
+                {
+                    // Wait for the error message to be visible
+                    var errorElement = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//div[@class='ns-box ns-growl ns-effect-jelly ns-type-error ns-show']")));
+                    if (errorElement != null)
+                    {
+                        // Retrieve and validate the error message
+                        string actualErrorMessage = CertificateObj.GetErrorMessage();
+                        Assert.That(actualErrorMessage, Is.EqualTo("Please enter Certification Name, Certification From and Certification Year"), "The expected error message did not appear.");
+                        test.Log(Status.Pass, "Test passed successfully, error message is displayed.");
+                        TakeScreenshotWithPngFormat();
+                    }
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    Assert.Fail("Error message not displayed within the timeout period.");
+                }
             }
             catch (Exception ex)
             {
+                // Log any other unexpected exception
                 test.Log(Status.Fail, $"An unexpected error occurred: {ex.Message}");
+                TakeScreenshotWithPngFormat();
                 throw;
             }
             finally
             {
-                if (!string.IsNullOrEmpty(certificatename2))
+                
+                try
                 {
-                    CertificateObj.DeleteTestData(certificatename2);
+                    if (!string.IsNullOrEmpty(certificatename2))
+                    {
+                       
+                        CommonDriver.CertificatenamesToDelete.Add(certificatename2);
+
+                        
+                    }
+                    if (!string.IsNullOrEmpty(certificatename))
+                    {
+                        CommonDriver.CertificatenamesToDelete.Add(certificatename);
+
+                    }
                 }
-                CertificateObj.DeleteTestData(certificatename);
+                catch (Exception cleanupEx)
+                {
+                    test.Log(Status.Fail, $"Failed to add certificate name during cleanup: {cleanupEx.Message}");
+                }
             }
         }
 
@@ -515,14 +547,19 @@ namespace CompetitionTask.Tests
         [Test, Order(9), Description("User can edit existing Certificate data with invalid feild")]
         public void EditCertificateDatawithinvalid()
         {
-            RunCertificateTest("AddCertificateData");
+
+            RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
+
+
             string certificatename = CertificatenamesToDelete.First();
-            string certificatename2 = null;
+            string certificatename2 = string.Empty;
             // Assuming the new certificate is the last one added
             try
             {
                 // Attempt to edit the certificate data with empty values
-                RunEditCertificateTest("EditCertificateDatawithinvalid");
+
+                RunEditCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EditCertificateDatawithinvalid.json");
+
                 certificatename2 = CertificatenamesToDelete.Last();
 
                 // Wait for the messages to appear
@@ -569,12 +606,25 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                if (!string.IsNullOrEmpty(certificatename2))
+               
+                try
                 {
-                    CertificateObj.DeleteTestData(certificatename2);
+                    if (!string.IsNullOrEmpty(certificatename2))
+                    {
+                        
+                        CommonDriver.CertificatenamesToDelete.Add(certificatename2);
+
+                    }
+                    if (!string.IsNullOrEmpty(certificatename))
+                    {
+                        CommonDriver.CertificatenamesToDelete.Add(certificatename);
+
+                    }
                 }
-                CertificateObj.DeleteTestData(certificatename);
+                catch (Exception cleanupEx)
+                {
+                    test.Log(Status.Fail, $"Failed to add certificate name during cleanup: {cleanupEx.Message}");
+                }
             }
         }
         [Test, Order(10), Description("User can detete existing Certificate data")]
@@ -583,9 +633,13 @@ namespace CompetitionTask.Tests
 
             try
             {
-                RunCertificateTest("AddCertificateData");
+                RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
+
+
                 // Execute the delete operation
-                RunDeleteCertificateTest("DeleteDataWhichisinthelist");
+
+                RunDeleteCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\DeleteCertDataWhichisinthelist.json");
+                
 
                 // Verify that the certificate is no longer present
                 var certificatesAfterDeletion = CertificateObj.GetCertificate(); // Assume this method retrieves all certificate from the UI
@@ -601,6 +655,8 @@ namespace CompetitionTask.Tests
                 // If all deletions are successful
                 test.Log(Status.Pass, "certificate were successfully deleted.");
                 TakeScreenshotWithPngFormat();
+                CertificatenamesToDelete.Clear();
+
             }
             catch (Exception ex)
             {
@@ -615,21 +671,28 @@ namespace CompetitionTask.Tests
             try
             {
                 // Add initial Certificate data
-                RunCertificateTest("AddCertificateData");
+
+
+                RunCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddCertificate.json");
+
+
                 string certificatename = CertificatenamesToDelete.First();
 
                 // Capture the list of certificate before attempting to delete non-existent data
                 var certificatesBeforeDeletionAttempt = CertificateObj.GetCertificate(); // Assume this method retrieves all certificate from the UI
 
                 // Attempt to delete non-existent Certificate data
-                RunDeleteCertificateTest("DeleteDataWhichisnotinthelist");
+
+
+                RunDeleteCertificateTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\DeleteCertDataWhichisnotinthelist.json");
 
                 // Capture the list of certificate after the deletion attempt
                 var certificatesAfterDeletionAttempt = CertificateObj.GetCertificate();
 
                 // Verify that the list of certificate remains unchanged
                 Assert.That(certificatesAfterDeletionAttempt, Is.EquivalentTo(certificatesBeforeDeletionAttempt), "The list of ce` should remain unchanged when attempting to delete non-existent data.");
-                CertificateObj.DeleteTestData(certificatename);
+                CommonDriver.CertificatenamesToDelete.Add(certificatename);
+
                 // Log success and take a screenshot
                 test.Log(Status.Pass, "Non-existent Certificate data was not deleted, as expected.");
                 TakeScreenshotWithPngFormat();

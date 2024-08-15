@@ -3,6 +3,7 @@ using CompetitionTask.Models;
 using CompetitionTask.Pages;
 using CompetitionTask.Utils;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -16,31 +17,27 @@ namespace CompetitionTask.Tests
     {
         Education educationObj;
         LoginPage loginPageObj;
-        string addEduFile = @"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EducationData.json";
-        List<string> DegreesToDelete; // Initialize this list
-        List<string> DegreeToRemove; //
+        List<string> DegreesToDelete;
+        List<string> jsonDataFile;
+               
 
         public EducationTest()
         {
             loginPageObj = new LoginPage();
             educationObj = new Education();
-            DegreesToDelete = new List<string>(); // Initialize the list
-            DegreeToRemove = new List<string>(); //
+            DegreesToDelete = new List<string>(); 
+            
         }
-        private void RunEducationTest(string testCaseName)
+        private void RunEducationTest(string jsonDataFile)
         {
             educationObj.ClickAnyTab("Education");
             test.Log(Status.Info, "Navigated to Education tab");
-            test = extent.CreateTest(testCaseName).Info("Test Started");
+            
             try
             {
 
-                List<Models.TestCaseData2> testCases = JsonUtils.ReadJsonData<Models.TestCaseData2>(addEduFile);
-                var educationTestCase = testCases.FirstOrDefault(tc => tc.TestCase == testCaseName);
-
-                if (educationTestCase != null)
-                {
-                    foreach (var item in educationTestCase.Data)
+                List<EducationModel> educationData = JsonUtils.ReadJsonData<EducationModel>(jsonDataFile);
+                    foreach (var item in educationData)
                     {
 
                         string country = item.Country;
@@ -62,11 +59,6 @@ namespace CompetitionTask.Tests
                         }
 
                     }
-                }
-                else
-                {
-                    throw new Exception($"Test case {testCaseName} not found in JSON data.");
-                }
             }
             catch (Exception e)
             {
@@ -74,20 +66,17 @@ namespace CompetitionTask.Tests
                 throw;
             }
         }
-        private void RunEditEducationTest(string testCaseName)
+        private void RunEditEducationTest(string jsonDataFile)
         {
             educationObj.ClickAnyTab("Education");
             test.Log(Status.Info, "Navigated to Education tab");
 
-            test = extent.CreateTest(testCaseName).Info("Test Started");
+
             try
             {
-                List<Models.TestCaseData2> testCases = JsonUtils.ReadJsonData<Models.TestCaseData2>(addEduFile);
-                var educationTestCase = testCases.FirstOrDefault(tc => tc.TestCase == testCaseName);
-
-                if (educationTestCase != null)
+                List<EducationModel> educationData = JsonUtils.ReadJsonData<EducationModel>(jsonDataFile);
+                foreach (var item in educationData)
                 {
-                    foreach (var item in educationTestCase.Data)
                     {
                         string country = item.Country;
                         string university = item.University;
@@ -106,10 +95,7 @@ namespace CompetitionTask.Tests
                             throw; // Ensure the test fails if the education could not be edited
                         }
                     }
-                }
-                else
-                {
-                    throw new Exception($"Test case {testCaseName} not found in JSON data.");
+
                 }
             }
             catch (Exception e)
@@ -118,21 +104,17 @@ namespace CompetitionTask.Tests
                 throw;
             }
         }
-        private void RunDeleteEducationTest(string testCaseName)
+        private void RunDeleteEducationTest(string jsonDataFile)
         {
             educationObj.ClickAnyTab("Education");
             test.Log(Status.Info, "Navigated to Education tab");
 
-            test = extent.CreateTest(testCaseName).Info("Test Started");
+            
             try
             {
-                List<Models.TestCaseData2> testCases = JsonUtils.ReadJsonData<Models.TestCaseData2>(addEduFile);
-                var educationTestCase = testCases.FirstOrDefault(tc => tc.TestCase == testCaseName);
-
-                if (educationTestCase != null)
-                {
-                    foreach (var item in educationTestCase.Data)
-                    {
+                List<EducationModel> educationData = JsonUtils.ReadJsonData<EducationModel>(jsonDataFile);
+                foreach (var item in educationData)
+                {                    
                         string degree = item.Degree;
                         
                         try
@@ -145,11 +127,6 @@ namespace CompetitionTask.Tests
                             test.Log(Status.Fail, $"Failed to delete education to degree {degree}: {ex.Message}");
                             throw; // Ensure the test fails if the education could not be delete
                         }
-                    }
-                }
-                else
-                {
-                    throw new Exception($"Test case {testCaseName} not found in JSON data.");
                 }
             }
             catch (Exception e)
@@ -159,10 +136,20 @@ namespace CompetitionTask.Tests
             }
         }
 
-        [Test, Order(1), Description("user can able to Add new Education to the profile")]
+        [Test, Order(1), Description("Clear all the data")]
+        public void ClearData()
+        {
+            
+            educationObj.CleanEducationData();
+
+            var rows = driver.FindElements(By.CssSelector("div[data-tab='third'] .ui.fixed.table tbody tr"));
+            Assert.That(rows.Count == 0, "All records have been successfully deleted.");
+        }
+
+        [Test, Order(2), Description("user can able to Add new Education to the profile")]
         public void AddEducation()
         {
-            RunEducationTest("AddEducationData");
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json");
             string degree = DegreesToDelete.First();
             try
             {
@@ -189,16 +176,16 @@ namespace CompetitionTask.Tests
             finally
             {
                 // Clean up test data
-                educationObj.DeleteTestData(degree);
+                CommonDriver.DegreesToDelete.Add(degree);
             }
         }
 
-        [Test, Order(2), Description("user cannot create a education with an empty name")]
+        [Test, Order(3), Description("user cannot create a education with an empty name")]
         public void AddEducationWithempty()
         {
             try
             {
-                RunEducationTest("AddEducationDatawithempty");
+                RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducationDatawithempty.json");
                 string actualErrorMessage = educationObj.GetErrorMessage();
                 Assert.That(actualErrorMessage, Is.EqualTo("Please enter all the fields"), "The expected error message did not appear.");
                 test.Log(Status.Pass, "Test passed successfully");
@@ -216,15 +203,15 @@ namespace CompetitionTask.Tests
             }
         }
 
-        [Test, Order(3), Description("user cannot create duplicate entries for education data based on existing records")]
+        [Test, Order(4), Description("user cannot create duplicate entries for education data based on existing records")]
         public void AddEducationWithDuplicateEntry()
         {
-            RunEducationTest("AddEducationData");
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json");
             string degree = DegreesToDelete.First();
             Thread.Sleep(10000);
             try
             {
-                RunEducationTest("AddEducationWithDuplicateEntry");
+                RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducationWithDuplicateEntry.json");
                 string actualErrorMessage = educationObj.GetErrorMessage();
                 Assert.That(actualErrorMessage, Is.EqualTo("This information is already exist."), "The expected error message did not appear.");
                 if (string.IsNullOrEmpty(actualErrorMessage))
@@ -245,31 +232,19 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                educationObj.DeleteTestData(degree);
+                
+                CommonDriver.DegreesToDelete.Add(degree);
             }
         }
 
-        [Test, Order(4), Description("User can create multiple education records")]
+        [Test, Order(5), Description("User can create multiple education records")]
         public void CreateMultipleData()
         {
-            // Run the education test to add multiple records
-            RunEducationTest("CreateMultipleData");
+            
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CreateEduMultipleData.json");
 
-            // Extract the expected degrees from the JSON file
-            List<string> expectedDegrees = new List<string>();
-            List<Models.TestCaseData2> testCases = JsonUtils.ReadJsonData<Models.TestCaseData2>(addEduFile);
-            var educationTestCase = testCases.FirstOrDefault(tc => tc.TestCase == "CreateMultipleData");
-
-            if (educationTestCase != null)
-            {
-                expectedDegrees = educationTestCase.Data.Select(item => item.Degree).ToList();
-            }
-            else
-            {
-                test.Log(Status.Fail, "Test case 'CreateMultipleData' not found in JSON data.");
-                Assert.Fail("Test case 'CreateMultipleData' not found in JSON data.");
-            }
+            List<EducationModel> degrees = JsonConvert.DeserializeObject<List<EducationModel>>(File.ReadAllText(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CreateEduMultipleData.json"));
+            List<string> expectedDegrees = degrees.Select(c => c.Degree).ToList();
 
             // Wait for the degrees to be visible
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
@@ -316,29 +291,25 @@ namespace CompetitionTask.Tests
             test.Log(Status.Pass, "All degrees were successfully created and verified.");
             TakeScreenshotWithPngFormat();
 
-
-            // Perform cleanup after successful verification
             foreach (var degree in expectedDegrees)
             {
                 try
                 {
-                    educationObj.DeleteTestData(degree);
-                    test.Log(Status.Info, $"Deleted degree '{degree}' from the UI.");
+                    CommonDriver.DegreesToDelete.Add(degree);
                 }
                 catch (Exception ex)
                 {
-                    test.Log(Status.Fail, $"Failed to delete degree '{degree}': {ex.Message}");
-                    // Continue with other deletions even if one fails
+                    throw;
                 }
             }
         }
 
 
-        [Test, Order(5), Description("User can create multiple Education records with invalid input")]
+        [Test, Order(6), Description("User can create multiple Education records with invalid input")]
         public void CreateEducationDatawithInvalidinput()
         {
             // Run the test to create education data with invalid input
-            RunEducationTest("CreateEducationDatawithInvalidinput");
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\CreateEducationDatawithInvalidinput.json");
             string degree = DegreesToDelete.First();
 
             try
@@ -384,34 +355,25 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                educationObj.DeleteTestData(degree);
+                CommonDriver.DegreesToDelete.Add(degree);
             }
         }
 
-        [Test, Order(6), Description("Clear all the data")]
-       public void ClearData()
-       {
-           // RunEducationTest("CreateMultipleData");
-            educationObj.CleanEducationData();
-
-            var rows = driver.FindElements(By.CssSelector("div[data-tab='third'] .ui.fixed.table tbody tr"));
-            Assert.That(rows.Count == 0, "All records have been successfully deleted.");
-        }
+     
 
         [Test, Order(7), Description("User can edit existing education data")]
         public void EditEducationData()
         {
 
-            RunEducationTest("AddEducationData"); // First, add the education data
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json"); // First, add the education data
             string degree = DegreesToDelete.First();
             string degree2 = string.Empty;
 
             try
             {
                 // Attempt to edit the certificate data
-                RunEditEducationTest("EditEducationData");
-                degree2 = DegreesToDelete.Last();
+                RunEditEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EditEducationData.json");
+                degree2 = DegreesToDelete.LastOrDefault();
 
                 // Wait for the messages to appear
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
@@ -467,63 +429,117 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                if (!string.IsNullOrEmpty(degree2))
+                try
                 {
-                    educationObj.DeleteTestData(degree2);
+                    if (!string.IsNullOrEmpty(degree2))
+                    {
+
+                        CommonDriver.DegreesToDelete.Add(degree2);
+
+                    }
+                    if (!string.IsNullOrEmpty(degree))
+                    {
+                        CommonDriver.DegreesToDelete.Add(degree);
+
+                    }
                 }
-                educationObj.DeleteTestData(degree);
+                catch (Exception ex)
+                {
+                    test.Log(Status.Fail, $"Failed to add certificate name for cleanup: {ex.Message}");
+                }
             }
         }
 
-           
+
         [Test, Order(8), Description("User can edit existing education data with empty")]
         public void EditEducationDatawithempty()
-        {           
+        {
 
-            RunEducationTest("AddEducationData"); // First, add the education data
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json"); // First, add the education data
             string degree = DegreesToDelete.First();
             string degree2 = null;
             try
             {
-                RunEditEducationTest("EditEducationDatawithempty");
-                degree2 = DegreesToDelete.Last();
-                string actualErrorMessage = educationObj.GetErrorMessage();
-                Assert.That(actualErrorMessage, Is.EqualTo("Education information was invalid"), "The expected error message did not appear.");
-                test.Log(Status.Pass, "Test passed successfully");
-                TakeScreenshotWithPngFormat();
-            }
-            catch (WebDriverTimeoutException ex)
-            {
-                test.Log(Status.Fail, $"Timed out waiting for the error message: {ex.Message}");
-                throw;
+                // Run the edit test with empty data
+                RunEditEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EditEducationDatawithempty.json");
+
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                try
+                {
+                    // Check if a success message is displayed
+                    var successElement = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//div[@class='ns-box ns-growl ns-effect-jelly ns-type-success ns-show']")));
+                    if (successElement != null)
+                    {
+                        Assert.Fail("Success message displayed instead of error message.");
+                    }
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    // Expected outcome if success message is not displayed
+                }
+
+                try
+                {
+                    // Wait for the error message to be visible
+                    var errorElement = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//div[@class='ns-box ns-growl ns-effect-jelly ns-type-error ns-show']")));
+                    if (errorElement != null)
+                    {
+                        // Retrieve and validate the error message
+                        string actualErrorMessage = educationObj.GetErrorMessage();
+                        Assert.That(actualErrorMessage, Is.EqualTo("Please enter all the fields"), "The expected error message did not appear.");
+                        test.Log(Status.Pass, "Test passed successfully, error message is displayed.");
+                        TakeScreenshotWithPngFormat();
+                    }
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    Assert.Fail("Error message not displayed within the timeout period.");
+                }
             }
             catch (Exception ex)
             {
+                // Log any other unexpected exception
                 test.Log(Status.Fail, $"An unexpected error occurred: {ex.Message}");
+                TakeScreenshotWithPngFormat();
                 throw;
             }
             finally
             {
-                if (!string.IsNullOrEmpty(degree2))
+                
+                try
                 {
-                    educationObj.DeleteTestData(degree2);
+                    if (!string.IsNullOrEmpty(degree2))
+                    {
+
+                        CommonDriver.DegreesToDelete.Add(degree2);
+
+
+                    }
+                    if (!string.IsNullOrEmpty(degree))
+                    {
+                        CommonDriver.DegreesToDelete.Add(degree);
+
+                    }
                 }
-                educationObj.DeleteTestData(degree);
+                catch (Exception cleanupEx)
+                {
+                    test.Log(Status.Fail, $"Failed to add certificate name during cleanup: {cleanupEx.Message}");
+                }
             }
         }
 
         [Test, Order(9), Description("User can edit existing education data with invalid feild")]
         public void EditEducationDatawithinvalid()
         {
-            RunEducationTest("AddEducationData"); // First, add the education data
+            RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json"); // First, add the education data
             string degree = DegreesToDelete.First();
-            string degree2 = null;
-            
+            string degree2 = string.Empty;
+
             try
             {
                 // Attempt to edit the degree data with invalid values
-                RunEditEducationTest("EditEducationDatawithinvalid");
+                RunEditEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\EditEducationDatawithinvalid.json");
                 degree2 = DegreesToDelete.Last();
 
                 // Wait for the messages to appear
@@ -570,12 +586,26 @@ namespace CompetitionTask.Tests
             }
             finally
             {
-                // Clean up test data
-                if (!string.IsNullOrEmpty(degree2))
+                try
                 {
-                    educationObj.DeleteTestData(degree2);
+                    if (!string.IsNullOrEmpty(degree2))
+                    {
+
+                        CommonDriver.DegreesToDelete.Add(degree2);
+
+                    }
+                    if (!string.IsNullOrEmpty(degree))
+                    {
+                        CommonDriver.DegreesToDelete.Add(degree);
+
+                    }
                 }
-                educationObj.DeleteTestData(degree);
+
+                catch (Exception cleanupEx)
+
+                {
+                    test.Log(Status.Fail, $"Failed to add certificate name during cleanup: {cleanupEx.Message}");
+                }
             }
         }
 
@@ -585,13 +615,13 @@ namespace CompetitionTask.Tests
             
             try
             {
-                RunEducationTest("AddEducationData");
+                RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json");
                 // Execute the delete operation
-                RunDeleteEducationTest("DeleteDataWhichisinthelist");
+                RunDeleteEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\DeleteEduDataWhichisinthelist.json");
 
                 // Verify that the degree is no longer present
                 var degreesAfterDeletion = educationObj.GetEducation(); // Assume this method retrieves all degrees from the UI
-                foreach (var degree in DegreesToRemove)
+                foreach (var degree in DegreesToDelete)
                 {
                     if (degreesAfterDeletion.Contains(degree))
                     {
@@ -603,6 +633,7 @@ namespace CompetitionTask.Tests
                 // If all deletions are successful
                 test.Log(Status.Pass, "degree were successfully deleted.");
                 TakeScreenshotWithPngFormat();
+                DegreesToDelete.Clear();
             }
             catch (Exception ex)
             {
@@ -617,14 +648,14 @@ namespace CompetitionTask.Tests
             try
             {
                 // Add initial education data
-                RunEducationTest("AddEducationData");
+                RunEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\AddEducation.json");
                 string degree = DegreesToDelete.First();
 
                 // Capture the list of degrees before attempting to delete non-existent data
                 var degreesBeforeDeletionAttempt = educationObj.GetEducation(); // Assume this method retrieves all degrees from the UI
 
                 // Attempt to delete non-existent education data
-                RunDeleteEducationTest("DeleteDataWhichisnotinthelist");
+                RunDeleteEducationTest(@"D:\Mansi-Industryconnect\CompetitionTask\JsonData\DeleteEduDataWhichisnotinthelist.json");
 
                 // Capture the list of degrees after the deletion attempt
                 var degreesAfterDeletionAttempt = educationObj.GetEducation();
