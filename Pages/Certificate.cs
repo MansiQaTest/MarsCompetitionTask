@@ -24,6 +24,8 @@ namespace CompetitionTask.Pages
         private IWebElement editCertButton => driver.FindElement(By.XPath(e_editCertButton));
         private IWebElement buttonUpdate => driver.FindElement(By.XPath(e_updateButton));
         private IWebElement certificateTable => driver.FindElement(By.XPath("//div[@data-tab='fourth']//tbody"));
+        private IWebElement cancelButton => driver.FindElement(By.XPath(e_cancelButton));
+
 
 
 
@@ -39,6 +41,7 @@ namespace CompetitionTask.Pages
         private string e_deletebutton = "//div[@data-tab='fourth']//tbody[last()]/tr[1]/td[4]/span[2]/i";
         private string e_editCertButton = "//div[@data-tab='fourth']//tbody[last()]//tr[1]/td[4]/span[1]/i";
         private string e_updateButton = "//input[@value='Update']";
+        private string e_cancelButton = "//input[@value='Cancel']";
 
 
 
@@ -61,7 +64,20 @@ namespace CompetitionTask.Pages
             WaitUtils.WaitToBeClickable(driver, "XPath", e_AddButton, 10);
 
             addCertButton.Click();
+            Thread.Sleep(1000);
+            bool isErrorDisplayed = driver.FindElements(By.XPath("//div[@class='ns-box ns-growl ns-effect-jelly ns-type-error ns-show']")).Count > 0;
 
+            if (isErrorDisplayed)
+            {
+                // If an error is displayed, click the 'Cancel' button
+                WaitUtils.WaitToBeClickable(driver, "XPath", e_cancelButton, 10);
+                cancelButton.Click();
+                Console.WriteLine("An error occurred while adding certificate. Cancelled the operation.");
+            }
+            else
+            {
+                Console.WriteLine("Education added successfully.");
+            }
 
 
         }

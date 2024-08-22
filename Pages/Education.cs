@@ -49,6 +49,7 @@ namespace CompetitionTask.Pages
 
         public void CreateEducation(string country, string university, string title, string degree, string gradYr)
         {
+            
             WaitUtils.WaitToBeClickable(driver, "XPath", e_addedubutton, 10);
 
             addNewEduBtn.Click();
@@ -68,10 +69,21 @@ namespace CompetitionTask.Pages
             selectYearDropdown.SelectByValue(gradYr);
 
             WaitUtils.WaitToBeClickable(driver, "XPath", e_AddButton, 10);
-
             addEduButton.Click();
+            Thread.Sleep(1000);
+            bool isErrorDisplayed = driver.FindElements(By.XPath("//div[@class='ns-box ns-growl ns-effect-jelly ns-type-error ns-show']")).Count > 0;
 
-            //return degree;
+            if (isErrorDisplayed)
+            {
+                // If an error is displayed, click the 'Cancel' button
+                WaitUtils.WaitToBeClickable(driver, "XPath", e_cancelButton, 10);
+                cancelButton.Click();
+                Console.WriteLine("An error occurred while adding education. Cancelled the operation.");
+            }
+            else
+            {
+                Console.WriteLine("Education added successfully.");
+            }
 
         }
 
@@ -89,6 +101,7 @@ namespace CompetitionTask.Pages
         {
             WaitUtils.WaitToBeVisible(driver, "XPath", e_errormessage, 1);
             return errormessage.Text;
+            
         }
         public string GetSuccessMessage()
         {
@@ -151,7 +164,7 @@ namespace CompetitionTask.Pages
         }
     
             public void DeleteTestData(string degree)
-        {
+            {
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(3));
             bool isDegreeFound = false;
             while (true)
@@ -177,10 +190,10 @@ namespace CompetitionTask.Pages
                             // Click the delete button in the same row as the test data
                             var deleteButton = row.FindElement(By.XPath("//div[@data-tab='third']//tbody[last()]/tr/td[6]/span[2]/i"));
                             deleteButton.Click();
-                            
-                            wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//div[@data-tab='third']//tbody/tr")));
 
-                            Thread.Sleep(2000);
+                            wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.InvisibilityOfElementLocated(By.XPath("./td[4][text()='" + degree + "']")));
+
+                            Thread.Sleep(1000);
                             //Console.WriteLine($"Deleted test data with degree: {degree}");
                             break;
                         }

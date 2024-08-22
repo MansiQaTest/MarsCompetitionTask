@@ -20,8 +20,8 @@ namespace CompetitionTask.Utils
         public static IWebDriver driver;
         public static ExtentReports extent;
         public static ExtentTest test;
-        public static List<string> DegreesToDelete { get; set; } = new List<string>();
-        public static List<string> CertificatenamesToDelete { get; set; } = new List<string>();
+        public static List<string> EducationDataToCleanUp { get; set; } = new List<string>();
+        public static List<string> CertificateDataToCleanUp { get; set; } = new List<string>();
 
 
 
@@ -35,6 +35,21 @@ namespace CompetitionTask.Utils
                 var sparkReporter = new ExtentSparkReporter(@"D:\Mansi-Industryconnect\CompetitionTask\Reports\extentReport.html");
                 extent = new ExtentReports();
                 extent.AttachReporter(sparkReporter);
+              
+                driver = new ChromeDriver();
+                driver.Manage().Window.Maximize();
+                driver.Navigate().GoToUrl("http://localhost:5000/Home");
+             
+
+                loginPageObj = new LoginPage();
+                educationObj = new Education();
+                certificateObj = new Certificate();
+                                
+                loginPageObj.LoginAction(driver);
+                // Clean all existing education and certificate data
+                educationObj.CleanEducationData();
+                certificateObj.CleancertificateData();
+                Console.WriteLine("All existing data cleaned up successfully.");
 
             }
             catch (Exception e)
@@ -45,22 +60,9 @@ namespace CompetitionTask.Utils
 
         [SetUp]
         public void Initialization()
-        {
-            // Initialize WebDriver (Chrome in this case)
-
-            
-            driver = new ChromeDriver();
-            driver.Manage().Window.Maximize();
-            driver.Navigate().GoToUrl("http://localhost:5000/Home");
-            loginPageObj = new LoginPage();
-            educationObj = new Education();
-            certificateObj = new Certificate();
-
+        { 
             var testName = TestContext.CurrentContext.Test.Name;
             test = extent.CreateTest(testName);
-
-            loginPageObj.LoginAction(driver);
-            test.Log(Status.Info, "Login successful");
         }
 
         [TearDown]
@@ -73,7 +75,10 @@ namespace CompetitionTask.Utils
                 {
                     TakeScreenshotWithPngFormat();
                 }
-                foreach (var certificatename in CertificatenamesToDelete)
+
+                //Cleanup the testData
+
+                foreach (var certificatename in CertificateDataToCleanUp)
                 {
                     try
                     {
@@ -85,7 +90,7 @@ namespace CompetitionTask.Utils
                         test.Log(Status.Fail, $"Failed to delete certificate name during cleanup: {cleanupEx.Message}");
                     }
                 }
-                foreach (var degree in DegreesToDelete)
+                foreach (var degree in EducationDataToCleanUp)
                 {
                     try
                     {
@@ -98,12 +103,8 @@ namespace CompetitionTask.Utils
                     }
                 }
 
-                // Quit the WebDriver after each test if desired
-                if (driver != null)
-                {
-                    driver.Quit();
-                    driver.Dispose();
-                }
+                // Clear the lists after cleanup
+               
             }
             catch (Exception e)
             {
@@ -134,8 +135,6 @@ namespace CompetitionTask.Utils
         {
             try
             {
-                // Cleanup test data
-
                 extent.Flush();
 
             }
@@ -144,6 +143,16 @@ namespace CompetitionTask.Utils
                 Console.WriteLine($"An error occurred during final teardown: {e.Message}");
             }
             
+            finally
+            {
+                // Ensure WebDriver is disposed if not already
+                if (driver != null)
+                {
+                    driver.Quit();
+                    driver.Dispose();
+                }
+            }
+
         }
     }
 }
